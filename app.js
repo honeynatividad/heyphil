@@ -96,7 +96,7 @@ function updateMessage(input, response) {
 
 app.get('/webhook', function(req, res) {
   if (req.query['hub.mode'] === 'subscribe' &&
-      req.query['hub.verify_token'] === <VERIFY_TOKEN>) {
+      req.query['hub.verify_token'] === 'heyphilbot_is_me') {
     console.log("Validating webhook");
     res.status(200).send(req.query['hub.challenge']);
   } else {
