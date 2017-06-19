@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-require('dotenv').load();
+var Botkit = require('botkit');
 
-var express = require('express');
-var bodyParser = require('body-parser');
-var verify = require('./security');
-var app = express();
-
-app.use(bodyParser.json({
-  verify: verify
-}));
-
-var port = process.env.PORT || 3000;
-app.set('port', port);
-
-require('./app')(app);
-
-// Listen on the specified port
-app.listen(port, function() {
-  console.log('Client server listening on port ' + port);
+var controller = Botkit.slackbot();
+var bot = controller.spawn({
+  token: process.env.SLACK_TOKEN
 });
+
+controller.hears(['.*'], ['direct_message', 'direct_mention', 'mention'], function(bot, message) {
+  bot.reply(message, message.watsonData.output.text.join('\n'));
+});
+
+module.exports.controller = controller;
+module.exports.bot = bot;
