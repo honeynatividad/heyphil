@@ -1,77 +1,218 @@
-# Multi-channel bot
+# Conversation Sample Application [![Build Status](https://travis-ci.org/watson-developer-cloud/conversation-simple.svg?branch=master)](http://travis-ci.org/watson-developer-cloud/conversation-simple) [![codecov.io](https://codecov.io/github/watson-developer-cloud/conversation-simple/coverage.svg?branch=master)](https://codecov.io/github/watson-developer-cloud/conversation-simple?branch=master)
 
-This document describes how to set up a sample Express app which talks to Slack, Facebook, and Twilio bots.
+This Node.js app demonstrates the Conversation service in a simple chat interface simulating a cognitive car dashboard.
 
-## Install all dependencies:
+![Demo](readme_images/demo.gif)
+
+You can view a [demo][demo_url] of this app.
+
+## Before you begin
+
+* Create a Bluemix account
+    * [Sign up][sign_up] in Bluemix, or use an existing account. Your account must have available space for at least 1 app and 1 service.
+* Make sure that you have the following prerequisites installed:
+    * The [Node.js](https://nodejs.org/#download) runtime, including the [npm][npm_link] package manager
+    * The [Cloud Foundry][cloud_foundry] command-line client
+
+      Note: Ensure that you Cloud Foundry version is up to date
+
+## Installing locally
+
+If you want to modify the app or use it as a basis for building your own app, install it locally. You can then deploy your modified version of the app to the Bluemix cloud.
+
+### Getting the files
+
+Use GitHub to clone the repository locally, or [download the .zip file](https://github.com/watson-developer-cloud/conversation-simple/archive/master.zip) of the repository and extract the files.
+
+### Setting up the Conversation service
+
+1. At the command line, go to the local project directory (`conversation-simple`).
+
+1. Connect to Bluemix with the Cloud Foundry command-line tool. For more information, see the Watson Developer Cloud [documentation][cf_docs].
+    ```bash
+    cf login
+    ```
+
+1. Create an instance of the Conversation service in Bluemix. For example:
+
+    ```bash
+    cf create-service conversation free my-conversation-service
+    ```
+
+### Importing the Conversation workspace
+
+1. In your browser, navigate to [your Bluemix console] (https://console.ng.bluemix.net/registration/?target=/catalog/%3fcategory=watson).
+
+1. From the **All Items** tab, click the newly created Conversation service in the **Services** list.
+
+    ![Screen capture of Services list](readme_images/conversation_service.png)
+
+1. On the Service Details page, click **Launch tool**.
+
+1. Click the **Import workspace** icon in the Conversation service tool. Specify the location of the workspace JSON file in your local copy of the app project:
+
+    `<project_root>/training/car_workspace.json`
+
+1. Select **Everything (Intents, Entities, and Dialog)** and then click **Import**. The car dashboard workspace is created.
+
+### Configuring the app environment
+
+1. Copy the `.env.example` file to a new `.env` file.
+
+1. Create a service key in the format `cf create-service-key <service_instance> <service_key>`. For example:
+
+    ```bash
+    cf create-service-key my-conversation-service myKey
+    ```
+
+1. Retrieve the credentials from the service key using the command `cf service-key <service_instance> <service_key>`. For example:
+
+    ```bash
+    cf service-key my-conversation-service myKey
+    ```
+
+   The output from this command is a JSON object, as in this example:
+
+    ```JSON
+    {
+      "password": "87iT7aqpvU7l",
+      "url": "https://gateway.watsonplatform.net/conversation/api",
+      "username": "ca2905e6-7b5d-4408-9192-e4d54d83e604"
+    }
+    ```
+
+1. Paste  the `password` and `username` values (without quotation marks) from the JSON into the `CONVERSATION_PASSWORD` and `CONVERSATION_USERNAME` variables in the `.env` file. For example:
 
     ```
+    CONVERSATION_USERNAME=ca2905e6-7b5d-4408-9192-e4d54d83e604
+    CONVERSATION_PASSWORD=87iT7aqpvU7l
+    ```
+
+1. In your Bluemix console, open the Conversation service instance where you imported the workspace.
+
+1. Click the menu icon in the upper-right corner of the workspace tile, and then select **View details**.
+
+    ![Screen capture of workspace tile menu](readme_images/workspace_details.png)
+
+1. Click the ![Copy](readme_images/copy_icon.png) icon to copy the workspace ID to the clipboard.
+
+1. On the local system, paste the workspace ID into the WORKSPACE_ID variable in the `.env` file. Save and close the file.
+
+### Installing and starting the app
+
+1. Install the demo app package into the local Node.js runtime environment:
+
+    ```bash
     npm install
     ```
 
-## Getting credentials
+1. Start the app:
 
-### Watson Conversation
-Follow the steps outlined in [this document](https://github.com/watson-developer-cloud/conversation-simple/blob/master/README.md#configuring-the-application-environmnet) and paste your Conversation bot's credentials in the sample `.env` file in the project directory.
+    ```bash
+    npm start
+    ```
 
-If you don't have a Conversation service instance,  follow [these steps](https://github.com/watson-developer-cloud/conversation-simple/blob/master/README.md#before-you-begin) to get started.
+1. Point your browser to http://localhost:3000 to try out the app.
 
-### Slack
-Follow the Getting Started section of this [document](https://github.com/howdyai/botkit/blob/master/readme-slack.md) from Botkit.
-Once you obtain the Slack token, paste the token in the `.env` file.
+## Testing the app
+
+After your app is installed and running, experiment with it to see how it responds.
+
+The chat interface is on the left, and the JSON that the JavaScript code receives from the Conversation service is on the right. Your questions and commands are interpreted using a small set of sample data trained with the following intents:
+
+    turn_on
+    turn_off
+    turn_up
+    turn_down
+    traffic_update
+    locate_amenity
+    weather
+    phone
+    capabilities
+    greetings
+    goodbyes
+
+Type a request, such as `music on` or `I want to turn on the windshield wipers`. The system understands your intent and responds. You can see the details of how your input was understood by examining the JSON data in the `Watson understands` section on the right side.
+
+For example, if you type `Turn on some music`, the JSON data shows that the system understood the `turn_on` intent with a high level of confidence, along with the `appliance` entity with a value of `music`.
+
+For more information about intents, see the [Conversation service documentation][doc_intents].
+
+To see details of how these intents are defined, including sample input for each intent, launch the Conversation tool.
+
+## Modifying the app
+
+After you have the app deployed and running, you can explore the source files and make changes. Try the following:
+
+* Modify the .js files to change the app logic.
+* Modify the .html file to change the appearance of the app page.
+* Use the Conversation tool to train the service for new intents, or to modify the dialog flow. For more information, see the [Conversation service documentation][docs_landing].
+
+## Deploying to Bluemix
+
+You can use Cloud Foundry to deploy your local version of the app to Bluemix.
+
+1. In the project root directory, open the `manifest.yml` file:
+
+  * In the `applications` section of the `manifest.yml` file, change the `name` value to a unique name for your version of the demo app.
+  * In the `services` section, specify the name of the Conversation service instance you created for the demo app. If you do not remember the service name, use the `cf services` command to list all services you have created.
+
+  The following example shows a modified `manifest.yml` file:
+
+  ```yml
+  ---
+  declared-services:
+   conversation-service:
+     label: conversation
+     plan: free
+  applications:
+  - name: conversation-simple-app-test1
+   command: npm start
+   path: .
+   memory: 256M
+   instances: 1
+   services:
+   - my-conversation-service
+   env:
+     NPM_CONFIG_PRODUCTION: false
+  ```
+
+1. Push the app to Bluemix:
+
+  ```bash
+  cf push
+  ```
+  Access your app on Bluemix at the URL specified in the command output.
+
+## Troubleshooting
+
+If you encounter a problem, you can check the logs for more information. To see the logs, run the `cf logs` command:
+
+```none
+cf logs <application-name> --recent
 ```
-SLACK_TOKEN=<your token>
-```
 
-### Facebook Messenger
-Follow the Getting Started section of this [document](https://github.com/howdyai/botkit/blob/master/readme-facebook.md) from Botkit.
+## License
 
-*Some helpful hints for Facebook Messenger:*
- * Log into the Facebook App settings page. You need to add two Products- Messenger and Webhooks.
- * When setting up Messenger, make sure you have subscribed your page with your app, otherwise your app won't send back responses to your page. This step is also important cause Facebook will provide you with the _FB_ACCESS_TOKEN_ your bot will need to communicate via Messenger.
- * When setting up the webhook,
-    * You'll have to first set up [localtunnel](https://localtunnel.github.io/www/) locally and start it on the same port where you plan to run your Express app. Let's say you run your app on port 5000, then in one terminal window run the following command:
-    ```lt --port 5000```
-  lt will provide you with a url, part of which will be the webhook url.
-    * Add (`https://<your localtunnel url>/facebook/receive`) as Facebook Messenger's webhook. The webhook url must contain _https://_.
-    eg:  If your localtunnel url is `http://litjqjglwn.localtunnel.me` your webhook url will be `https://litjqjglwn.localtunnel.me/facebook/receive`, otherwise Facebook will show an error.
-    * You need to only subscribe to _Messages_ event under Webhooks.
+This sample code is licensed under Apache 2.0.
+Full license text is available in [LICENSE](LICENSE).
 
-Once you obtain the access token (provided by Facebook), the verify token (created by you) and the app secret key for your Facebook app (provided by Facebook), paste them in the .env file of your project.
-```
-FB_ACCESS_TOKEN=<your access token>
-FB_VERIFY_TOKEN=<your verify token>
-FB_APP_SECRET=<your apps secret key>
-```
+## Contributing
 
-When you're ready to test your bot, go to your Facebook homepage and find the page you created. Click on _Message_ to start chatting with your Watson Conversation bot!
+See [CONTRIBUTING](CONTRIBUTING.md).
 
-### Twilio IPM
-Follow the Getting Started section of this [document](https://github.com/howdyai/botkit/blob/master/readme-twilioipm.md) from Botkit.
-Copy and paste all the authentication details in the `.env` file.
-```
-TWILIO_ACCOUNT_SID=<your account sid>
-TWILIO_AUTH_TOKEN=<your auth token>
-TWILIO_IPM_SERVICE_SID=<your service sid>
-TWILIO_API_KEY=<your twilio API key>
-TWILIO_API_SECRET=<your twilio API secret>
-```
-You'll need to set up [localtunnel](https://localtunnel.github.io/www/) and have it running on the same port as your app server. The webhook url for Twilio will then be (`https://<your localtunnel url>/twilio/receive`).
+## Open Source @ IBM
 
-To test the bot, use this simple [Twilio IPM server](https://github.com/twilio/ip-messaging-demo-js).
+Find more open source projects on the
+[IBM Github Page](http://ibm.github.io/).
 
-## Starting the server
 
-If you are connecting to a channel, you need to add `USE_<channel_name>` in the .env file.
- eg: If you would like to use Slack and Facebook Messenger, you must add the following lines in your .env file:
-```
-USE_SLACK=any_value
-USE_FACEBOOK=any_value
-```
-The value of these variables doesn't matter, as long as they're present. The middleware knows it needs to connect to these channels.
-
-Once you have added your credentials in the `.env` file, start the example express app by running this command:
-```
-node server.js
-```
-
-Voila! You're all set! Start chatting on your social channel to test your bot.
+[cf_docs]: (https://www.ibm.com/watson/developercloud/doc/common/getting-started-cf.html)
+[cloud_foundry]: https://github.com/cloudfoundry/cli#downloads
+[demo_url]: http://conversation-simple.mybluemix.net/
+[doc_intents]: (http://www.ibm.com/watson/developercloud/doc/conversation/intent_ovw.shtml)
+[docs]: http://www.ibm.com/watson/developercloud/doc/conversation/overview.shtml
+[docs_landing]: (http://www.ibm.com/watson/developercloud/doc/conversation/index.shtml)
+[node_link]: (http://nodejs.org/)
+[npm_link]: (https://www.npmjs.com/)
+[sign_up]: bluemix.net/registration

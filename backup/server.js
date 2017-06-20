@@ -1,6 +1,5 @@
-#!/usr/bin/env
 /**
- * Copyright 2015 IBM Corp. All Rights Reserved.
+ * Copyright 2016 IBM Corp. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +14,23 @@
  * limitations under the License.
  */
 
-'use strict';
+require('dotenv').load();
 
-require('dotenv').config({silent: true});
+var express = require('express');
+var bodyParser = require('body-parser');
+var verify = require('./security');
+var app = express();
 
-var server = require('./app');
-var port = process.env.PORT || process.env.VCAP_APP_PORT || 3000;
+app.use(bodyParser.json({
+  verify: verify
+}));
 
-server.listen(port, function() {
-  // eslint-disable-next-line
-  console.log('Server running on port: %d', port);
+var port = process.env.PORT || 3000;
+app.set('port', port);
+
+require('./app')(app);
+
+// Listen on the specified port
+app.listen(port, function() {
+  console.log('Client server listening on port ' + port);
 });
